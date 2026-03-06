@@ -7,7 +7,7 @@ cpu            = 256
 memory         = 512
 desired_count  = 1  # Set to 0 to stop the service, 1+ to run
 container_port = 8000
-image_tag      = "latest"  # Will be overridden by CI/CD with commit SHA
+image_tag      = "dev-latest"  # Will be overridden by CI/CD with CalVer tag
 
 # Environment Variables
 environment_variables = {

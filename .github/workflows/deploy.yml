@@ -82,8 +82,10 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          # Use commit SHA as tag
-          IMAGE_TAG=${{ github.sha }}
+          # Generate CalVer tag: YYYY.MM.DD.RUN_NUMBER-dev
+          DATE_TAG=$(date +%Y.%-m.%-d)
+          RUN_NUMBER=${{ github.run_number }}
+          IMAGE_TAG="${DATE_TAG}.${RUN_NUMBER}-dev"
           IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
           
           echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
@@ -97,7 +99,7 @@ jobs:
         run: |
           docker build \
             --tag ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG} \
-            --tag ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest \
+            --tag ${ECR_REGISTRY}/${ECR_REPOSITORY}:dev-latest \
             --file Dockerfile \
             .
 
@@ -107,8 +109,9 @@ jobs:
           IMAGE_TAG: ${{ steps.image-info.outputs.image-tag }}
         run: |
           docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
-          docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+          docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:dev-latest
           echo "✅ Image pushed: ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+          echo "✅ Also tagged as: dev-latest"
 
   deploy:
     name: Deploy to ECS
