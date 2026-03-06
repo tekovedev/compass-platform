@@ -38,6 +38,9 @@ module "ecs_service" {
   container_port = var.container_port
   image_tag      = var.image_tag
 
+  # AWS Resources
+  knowledge_base_arn = data.terraform_remote_state.infra.outputs.knowledge_base_arn
+
   # Environment Variables & Secrets
   environment_variables = merge(
     var.environment_variables,

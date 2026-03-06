@@ -142,6 +142,13 @@ variable "enable_ecs_exec" {
   default     = true
 }
 
+# AWS Resources
+variable "knowledge_base_arn" {
+  description = "ARN of the Bedrock Knowledge Base (optional, defaults to wildcard)"
+  type        = string
+  default     = "*"
+}
+
 # Tags
 variable "tags" {
   description = "Additional tags for resources"

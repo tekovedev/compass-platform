@@ -82,11 +82,17 @@ resource "aws_iam_role_policy" "task_app_permissions" {
         Effect = "Allow"
         Action = [
           "bedrock:InvokeModel",
-          "bedrock:InvokeModelWithResponseStream",
+          "bedrock:InvokeModelWithResponseStream"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
           "bedrock:Retrieve",
           "bedrock:RetrieveAndGenerate"
         ]
-        Resource = "*"
+        Resource = var.knowledge_base_arn
       },
       {
         Effect = "Allow"
