@@ -19,16 +19,15 @@ def generate(query: str, context_chunks: list[str]) -> str:
     response = client.invoke_model(
         modelId=settings.llm_model_id,
         body=json.dumps({
-            "anthropic_version": "bedrock-2023-05-31",
-            "system": SYSTEM_PROMPT,
+            "system": [{"text": SYSTEM_PROMPT}],
             "messages": [
                 {
                     "role": "user",
-                    "content": f"Context:\n{context}\n\nQuestion: {query}",
+                    "content": [{"text": f"Context:\n{context}\n\nQuestion: {query}"}],
                 },
             ],
-            "max_tokens": 1024,
+            "inferenceConfig": {"maxTokens": 1024},
         }),
     )
     result = json.loads(response["body"].read())
-    return result["content"][0]["text"]
+    return result["output"]["message"]["content"][0]["text"]

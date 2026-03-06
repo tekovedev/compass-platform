@@ -4,13 +4,14 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     aws_region: str = "us-east-1"
     opensearch_endpoint: str = ""
-    opensearch_index: str = "documents"
+    opensearch_index: str = "cod_transito_index"
     embedding_model_id: str = "amazon.titan-embed-text-v2:0"
-    llm_model_id: str = "anthropic.claude-3-haiku-20240307-v1:0"
+    llm_model_id: str = "amazon.nova-pro-v1:0"
+    knowledge_base_id: str = "0ZAUEJ8LFT"
     chunk_size: int = 500
     chunk_overlap: int = 50
 
-    model_config = {"env_file": ".env"}
+    model_config = {"env_file": ".env", "extra": "ignore"}
 
 
 settings = Settings()

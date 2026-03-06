@@ -57,6 +57,6 @@ async def ingest(request: IngestRequest) -> IngestResponse:
 
 @router.post("/query", response_model=QueryResponse)
 async def query(request: QueryRequest) -> QueryResponse:
-    context_chunks = retrieve(request.query, get_store(), top_k=request.top_k)
+    context_chunks = retrieve(request.query, top_k=request.top_k)
     answer = generate(request.query, context_chunks)
     return QueryResponse(answer=answer, sources=context_chunks)
