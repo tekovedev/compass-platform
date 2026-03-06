@@ -14,6 +14,11 @@ router = APIRouter()
 _store: VectorStore | None = None
 
 
+@router.get("/healthcheck")
+async def healthcheck():
+    return {"status": "healthy"}
+
+
 def get_store() -> VectorStore:
     global _store
     if _store is None:
