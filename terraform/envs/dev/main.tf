@@ -39,7 +39,13 @@ module "ecs_service" {
   image_tag      = var.image_tag
 
   # Environment Variables & Secrets
-  environment_variables = var.environment_variables
+  environment_variables = merge(
+    var.environment_variables,
+    {
+      # Dynamically inject Knowledge Base ID from infra remote state
+      KNOWLEDGE_BASE_ID = data.terraform_remote_state.infra.outputs.knowledge_base_id
+    }
+  )
   secrets               = var.secrets
 
   # Auto Scaling

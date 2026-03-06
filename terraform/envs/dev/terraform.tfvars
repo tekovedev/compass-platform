@@ -11,9 +11,16 @@ image_tag      = "latest"  # Will be overridden by CI/CD with commit SHA
 
 # Environment Variables
 environment_variables = {
-  ENVIRONMENT = "dev"
-  LOG_LEVEL   = "INFO"
-  AWS_REGION  = "us-east-1"
+  ENVIRONMENT        = "dev"
+  LOG_LEVEL          = "INFO"
+  AWS_REGION         = "us-east-1"
+  
+  # Bedrock Configuration
+  EMBEDDING_MODEL_ID = "amazon.titan-embed-text-v2:0"
+  LLM_MODEL_ID       = "amazon.nova-pro-v1:0"
+  
+  # Note: KNOWLEDGE_BASE_ID is set dynamically from terraform remote state
+  # See main.tf for the actual value from compass-infra-tf outputs
 }
 
 # Secrets (optional - add ARNs from AWS Secrets Manager or Parameter Store)
