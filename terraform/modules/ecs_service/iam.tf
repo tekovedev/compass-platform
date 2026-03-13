@@ -82,7 +82,8 @@ resource "aws_iam_role_policy" "task_app_permissions" {
         Effect = "Allow"
         Action = [
           "bedrock:InvokeModel",
-          "bedrock:InvokeModelWithResponseStream"
+          "bedrock:InvokeModelWithResponseStream",
+          "bedrock:ApplyGuardrail"
         ]
         Resource = "*"
       },
