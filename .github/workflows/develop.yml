@@ -82,10 +82,10 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          # Generate CalVer tag: YYYY.MM.DD.RUN_NUMBER-dev
-          DATE_TAG=$(date +%Y.%-m.%-d)
+          # Generate CalVer tag: YYYY.MM.DD-RUN_NUMBER.dev
+          DATE_TAG=$(date +%Y.%m.%d)
           RUN_NUMBER=${{ github.run_number }}
-          IMAGE_TAG="${DATE_TAG}.${RUN_NUMBER}-dev"
+          IMAGE_TAG="${DATE_TAG}-${RUN_NUMBER}.dev"
           IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
           
           echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
