@@ -7,7 +7,7 @@ def test_imports():
     """Test that core modules can be imported."""
     try:
         from compass import config
-        from compass.pipeline import chunker
+        from compass.domain import chunker
         assert True
     except ImportError as e:
         assert False, f"Failed to import modules: {e}"
@@ -23,8 +23,8 @@ def test_config_loads():
 
 def test_chunker_basic():
     """Basic chunker functionality test."""
-    from compass.pipeline.chunker import chunk_text
-    
+    from compass.domain.chunker import chunk_text
+
     result = chunk_text("hello world", size=10, overlap=2)
     assert isinstance(result, list)
     assert len(result) > 0

@@ -24,7 +24,7 @@ def load_documents(path: str) -> list[Document]:
 
 def load_from_url(url: str, output_dir: str = "data") -> list[dict]:
     """Fetch a webpage, split it by HTML sections, and write a JSONL file."""
-    from compass.pipeline.splitter import split_html
+    from compass.infrastructure.html_splitter import split_html
 
     response = requests.get(url, timeout=30)
     response.raise_for_status()

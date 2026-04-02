@@ -18,7 +18,11 @@ environment_variables = {
   # Bedrock Configuration
   EMBEDDING_MODEL_ID = "amazon.titan-embed-text-v2:0"
   LLM_MODEL_ID       = "amazon.nova-pro-v1:0"
-  
+
+  # Bedrock Guardrails
+  GUARDRAIL_ID      = ""
+  GUARDRAIL_VERSION = "DRAFT"
+
   # Note: KNOWLEDGE_BASE_ID is set dynamically from terraform remote state
   # See main.tf for the actual value from compass-infra-tf outputs
 }

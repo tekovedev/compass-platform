@@ -1,6 +1,6 @@
 import pytest
 
-from compass.pipeline.chunker import chunk_text
+from compass.domain.chunker import chunk_text
 
 
 def test_single_chunk():

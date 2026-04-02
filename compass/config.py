@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     knowledge_base_id: str = "0ZAUEJ8LFT"
     chunk_size: int = 500
     chunk_overlap: int = 50
+    guardrail_id: str | None = None
+    guardrail_version: str = "DRAFT"
 
     model_config = {"env_file": ".env", "extra": "ignore"}
 
