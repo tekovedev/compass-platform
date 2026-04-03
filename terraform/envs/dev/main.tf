@@ -21,7 +21,8 @@ module "ecs_service" {
   
   # Data sources (from infrastructure)
   vpc_id                = data.aws_vpc.main.id
-  subnet_ids            = data.aws_subnets.private.ids
+  subnet_ids            = data.aws_subnets.public.ids
+  assign_public_ip      = true
   alb_security_group_id = data.aws_security_group.alb.id
   alb_target_group_arn  = data.aws_lb_target_group.main.arn
   ecs_cluster_id        = data.aws_ecs_cluster.main.id

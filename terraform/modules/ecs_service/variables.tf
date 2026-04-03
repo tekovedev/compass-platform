@@ -21,6 +21,12 @@ variable "subnet_ids" {
   type        = list(string)
 }
 
+variable "assign_public_ip" {
+  description = "Assign public IP to ECS tasks"
+  type        = bool
+  default     = false
+}
+
 variable "alb_security_group_id" {
   description = "Security group ID of the ALB"
   type        = string

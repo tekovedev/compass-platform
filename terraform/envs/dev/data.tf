@@ -11,7 +11,7 @@ data "aws_vpc" "main" {
   }
 }
 
-data "aws_subnets" "private" {
+data "aws_subnets" "public" {
   filter {
     name   = "vpc-id"
     values = [data.aws_vpc.main.id]
@@ -19,7 +19,7 @@ data "aws_subnets" "private" {
 
   filter {
     name   = "tag:Type"
-    values = ["private"]
+    values = ["public"]
   }
 }
 
