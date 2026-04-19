@@ -23,18 +23,19 @@ def apply_guardrail(text: str, source: str) -> GuardrailResult:
     Raises:
         GuardrailViolation: If the guardrail blocks the content.
     """
-    if settings.guardrail_id is None:
+    guardrail_id = (settings.guardrail_id or "").strip()
+    if not guardrail_id:
         return GuardrailResult(action="NONE", blocked=False, message="")
 
     client = boto3.client("bedrock-runtime", region_name=settings.aws_region)
     response = client.apply_guardrail(
-        guardrailIdentifier=settings.guardrail_id,
+        guardrailIdentifier=guardrail_id,
         guardrailVersion=settings.guardrail_version,
         source=source,
         content=[{"text": {"text": text}}],
     )
 
-    action = response["action"]
+    action = response.get("action", "NONE")
     blocked = action == "GUARDRAIL_INTERVENED"
 
     outputs = response.get("outputs", [])

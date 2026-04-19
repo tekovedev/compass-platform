@@ -42,6 +42,14 @@ def test_noop_output_when_guardrail_id_none(mock_settings):
     assert result.blocked is False
 
 
+@patch("compass.infrastructure.bedrock_guardrails.settings")
+def test_noop_when_guardrail_id_empty(mock_settings):
+    mock_settings.guardrail_id = ""
+    result = check_input("anything")
+    assert result.blocked is False
+    assert result.action == "NONE"
+
+
 # --- Passing checks (GUARDRAIL_NONE) ---
 
 @patch("compass.infrastructure.bedrock_guardrails.boto3")
@@ -88,6 +96,25 @@ def test_output_passes(mock_settings, mock_boto3):
 
     result = check_output("The speed limit is 60 km/h.")
     assert result.blocked is False
+
+
+@patch("compass.infrastructure.bedrock_guardrails.boto3")
+@patch("compass.infrastructure.bedrock_guardrails.settings")
+def test_missing_action_defaults_to_none(mock_settings, mock_boto3):
+    mock_settings.guardrail_id = "abc123"
+    mock_settings.guardrail_version = "DRAFT"
+    mock_settings.aws_region = "us-east-1"
+
+    mock_client = MagicMock()
+    mock_boto3.client.return_value = mock_client
+    mock_client.apply_guardrail.return_value = {
+        "outputs": [],
+        "assessments": [],
+    }
+
+    result = apply_guardrail("What is the speed limit?", source="INPUT")
+    assert result.blocked is False
+    assert result.action == "NONE"
 
 
 # --- Blocked checks (GUARDRAIL_INTERVENED) ---
