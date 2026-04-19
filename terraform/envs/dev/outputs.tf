@@ -1,3 +1,19 @@
+# Bedrock Guardrails
+output "guardrail_id" {
+  description = "Managed Bedrock guardrail ID"
+  value       = module.bedrock_guardrails.guardrail_id
+}
+
+output "guardrail_arn" {
+  description = "Managed Bedrock guardrail ARN"
+  value       = module.bedrock_guardrails.guardrail_arn
+}
+
+output "guardrail_version" {
+  description = "Managed Bedrock guardrail version used by the app"
+  value       = module.bedrock_guardrails.guardrail_version
+}
+
 # ECS Service
 output "service_name" {
   description = "Name of the ECS service"

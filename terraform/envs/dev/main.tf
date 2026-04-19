@@ -6,6 +6,32 @@ locals {
     Repository  = "tekovedev/compass-platform"
     Component   = "platform-service"
   }
+
+  guardrail_prompts_dir           = abspath("${path.root}/../../prompts/guardrails")
+  guardrail_blocked_input_message = try(trimspace(file("${local.guardrail_prompts_dir}/blocked_input.txt")), var.guardrail_blocked_input_message)
+  guardrail_blocked_output_message = try(trimspace(file("${local.guardrail_prompts_dir}/blocked_output.txt")), var.guardrail_blocked_output_message)
+  guardrail_denied_topics_from_file = try(jsondecode(file("${local.guardrail_prompts_dir}/denied_topics.json")), [])
+}
+
+# ------------------------------------------------------------
+# Module: Bedrock Guardrails
+# Optional safety and prompt protections managed with the backend
+# ------------------------------------------------------------
+module "bedrock_guardrails" {
+  source = "../../modules/bedrock_guardrails"
+
+  project_name             = "compass-platform"
+  environment              = var.environment
+  enabled                  = var.enable_guardrails
+  name                     = var.guardrail_name
+  description              = var.guardrail_description
+  blocked_input_messaging   = local.guardrail_blocked_input_message
+  blocked_outputs_messaging = local.guardrail_blocked_output_message
+  publish_version           = var.guardrail_publish_version
+  content_filters           = var.guardrail_content_filters
+  denied_topics             = length(var.guardrail_denied_topics) > 0 ? var.guardrail_denied_topics : local.guardrail_denied_topics_from_file
+
+  tags = local.common_tags
 }
 
 # ------------------------------------------------------------
@@ -52,6 +78,8 @@ module "ecs_service" {
       COGNITO_CLIENT_ID     = data.terraform_remote_state.infra.outputs.cognito_app_client_id
       COGNITO_REGION        = data.terraform_remote_state.infra.outputs.aws_region
       COGNITO_DOMAIN        = data.terraform_remote_state.infra.outputs.cognito_hosted_ui_domain
+      GUARDRAIL_ID          = module.bedrock_guardrails.guardrail_id
+      GUARDRAIL_VERSION     = module.bedrock_guardrails.guardrail_version
     }
   )
   secrets               = var.secrets
