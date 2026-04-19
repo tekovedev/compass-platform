@@ -46,8 +46,12 @@ module "ecs_service" {
   environment_variables = merge(
     var.environment_variables,
     {
-      # Dynamically inject Knowledge Base ID from infra remote state
-      KNOWLEDGE_BASE_ID = data.terraform_remote_state.infra.outputs.knowledge_base_id
+      # Dynamically inject shared platform settings from infra remote state
+      KNOWLEDGE_BASE_ID     = data.terraform_remote_state.infra.outputs.knowledge_base_id
+      COGNITO_USER_POOL_ID  = data.terraform_remote_state.infra.outputs.cognito_user_pool_id
+      COGNITO_CLIENT_ID     = data.terraform_remote_state.infra.outputs.cognito_app_client_id
+      COGNITO_REGION        = data.terraform_remote_state.infra.outputs.aws_region
+      COGNITO_DOMAIN        = data.terraform_remote_state.infra.outputs.cognito_hosted_ui_domain
     }
   )
   secrets               = var.secrets

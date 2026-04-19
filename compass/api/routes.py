@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
+from compass.api.auth import require_auth
 from compass.exceptions import GuardrailViolation
 from compass.api.schemas import (
     IngestRequest,
@@ -22,13 +23,19 @@ async def healthcheck():
 
 
 @router.post("/ingest", response_model=IngestResponse)
-async def ingest(request: IngestRequest) -> IngestResponse:
+async def ingest(
+    request: IngestRequest,
+    _: dict = Depends(require_auth),
+) -> IngestResponse:
     chunks_stored = await _ingest_service.execute(request.path)
     return IngestResponse(chunks_stored=chunks_stored)
 
 
 @router.post("/query", response_model=QueryResponse)
-async def query(request: QueryRequest) -> QueryResponse:
+async def query(
+    request: QueryRequest,
+    _: dict = Depends(require_auth),
+) -> QueryResponse:
     try:
         result = await _query_service.execute(request.query, top_k=request.top_k)
     except GuardrailViolation as exc:
