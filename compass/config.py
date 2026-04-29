@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     chunk_overlap: int = 50
     guardrail_id: str | None = None
     guardrail_version: str = "DRAFT"
+    cognito_user_pool_id: str | None = None
+    cognito_client_id: str | None = None
+    cognito_domain: str | None = None
+    cognito_region: str | None = None
 
     model_config = {"env_file": ".env", "extra": "ignore"}
 

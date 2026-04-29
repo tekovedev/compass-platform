@@ -80,7 +80,7 @@ resource "aws_ecs_task_definition" "platform" {
       }
 
       healthCheck = {
-        command     = ["CMD-SHELL", "curl -f http://localhost:${var.container_port}/api/v1/healthcheck || exit 1"]
+        command     = ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:${var.container_port}/api/v1/healthcheck')\" || exit 1"]
         interval    = 30
         timeout     = 5
         retries     = 3
@@ -101,7 +101,7 @@ resource "aws_ecs_service" "platform" {
   network_configuration {
     subnets          = var.subnet_ids
     security_groups  = [aws_security_group.ecs_service.id]
-    assign_public_ip = false
+    assign_public_ip = var.assign_public_ip
   }
 
   load_balancer {

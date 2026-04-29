@@ -10,6 +10,89 @@ variable "environment" {
   type        = string
 }
 
+# Bedrock Guardrails
+variable "enable_guardrails" {
+  description = "Whether the backend Terraform should create and manage a Bedrock guardrail"
+  type        = bool
+  default     = false
+}
+
+variable "guardrail_name" {
+  description = "Optional explicit name for the Bedrock guardrail"
+  type        = string
+  default     = null
+}
+
+variable "guardrail_description" {
+  description = "Description for the Bedrock guardrail"
+  type        = string
+  default     = "Compass backend guardrails for legal assistant queries"
+}
+
+variable "guardrail_blocked_input_message" {
+  description = "Message returned when a user input is blocked"
+  type        = string
+  default     = "Sorry, I can't help with that request."
+}
+
+variable "guardrail_blocked_output_message" {
+  description = "Message returned when a model response is blocked"
+  type        = string
+  default     = "Sorry, I can't provide that answer."
+}
+
+variable "guardrail_publish_version" {
+  description = "Publish a numbered Bedrock guardrail version instead of using DRAFT"
+  type        = bool
+  default     = false
+}
+
+variable "guardrail_content_filters" {
+  description = "Content filters for the managed Bedrock guardrail"
+  type = list(object({
+    type            = string
+    input_strength  = string
+    output_strength = string
+  }))
+  default = [
+    {
+      type            = "PROMPT_ATTACK"
+      input_strength  = "HIGH"
+      output_strength = "NONE"
+    },
+    {
+      type            = "MISCONDUCT"
+      input_strength  = "MEDIUM"
+      output_strength = "MEDIUM"
+    },
+    {
+      type            = "HATE"
+      input_strength  = "HIGH"
+      output_strength = "HIGH"
+    },
+    {
+      type            = "SEXUAL"
+      input_strength  = "HIGH"
+      output_strength = "HIGH"
+    },
+    {
+      type            = "VIOLENCE"
+      input_strength  = "HIGH"
+      output_strength = "HIGH"
+    }
+  ]
+}
+
+variable "guardrail_denied_topics" {
+  description = "Topics the assistant should refuse via the Bedrock guardrail"
+  type = list(object({
+    name       = string
+    definition = string
+    examples   = list(string)
+  }))
+  default = []
+}
+
 # ECS Task Configuration
 variable "cpu" {
   description = "CPU units for the task (256, 512, 1024, 2048, 4096)"

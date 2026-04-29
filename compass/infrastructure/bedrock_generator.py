@@ -5,25 +5,24 @@ import json
 import boto3
 
 from compass.config import settings
-
-SYSTEM_PROMPT = (
-    "You are a helpful assistant. Use the provided context to answer the user's "
-    "question. If the context doesn't contain enough information, say so."
-)
+from compass.infrastructure.prompt_loader import load_prompt, render_prompt
 
 
 def generate(query: str, context_chunks: list[str]) -> str:
-    """Generate an answer using Bedrock Claude with retrieved context."""
-    context = "\n\n---\n\n".join(context_chunks)
+    """Generate an answer using Bedrock with prompts loaded from the shared prompts folder."""
+    context = "\n\n---\n\n".join(context_chunks) if context_chunks else "No relevant context was retrieved."
+    system_prompt = load_prompt("rag/system.txt")
+    user_prompt = render_prompt("rag/user.txt", context=context, question=query)
+
     client = boto3.client("bedrock-runtime", region_name=settings.aws_region)
     response = client.invoke_model(
         modelId=settings.llm_model_id,
         body=json.dumps({
-            "system": [{"text": SYSTEM_PROMPT}],
+            "system": [{"text": system_prompt}],
             "messages": [
                 {
                     "role": "user",
-                    "content": [{"text": f"Context:\n{context}\n\nQuestion: {query}"}],
+                    "content": [{"text": user_prompt}],
                 },
             ],
             "inferenceConfig": {"maxTokens": 1024},

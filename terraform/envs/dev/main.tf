@@ -6,6 +6,32 @@ locals {
     Repository  = "tekovedev/compass-platform"
     Component   = "platform-service"
   }
+
+  guardrail_prompts_dir           = abspath("${path.root}/../../prompts/guardrails")
+  guardrail_blocked_input_message = try(trimspace(file("${local.guardrail_prompts_dir}/blocked_input.txt")), var.guardrail_blocked_input_message)
+  guardrail_blocked_output_message = try(trimspace(file("${local.guardrail_prompts_dir}/blocked_output.txt")), var.guardrail_blocked_output_message)
+  guardrail_denied_topics_from_file = try(jsondecode(file("${local.guardrail_prompts_dir}/denied_topics.json")), [])
+}
+
+# ------------------------------------------------------------
+# Module: Bedrock Guardrails
+# Optional safety and prompt protections managed with the backend
+# ------------------------------------------------------------
+module "bedrock_guardrails" {
+  source = "../../modules/bedrock_guardrails"
+
+  project_name             = "compass-platform"
+  environment              = var.environment
+  enabled                  = var.enable_guardrails
+  name                     = var.guardrail_name
+  description              = var.guardrail_description
+  blocked_input_messaging   = local.guardrail_blocked_input_message
+  blocked_outputs_messaging = local.guardrail_blocked_output_message
+  publish_version           = var.guardrail_publish_version
+  content_filters           = var.guardrail_content_filters
+  denied_topics             = length(var.guardrail_denied_topics) > 0 ? var.guardrail_denied_topics : local.guardrail_denied_topics_from_file
+
+  tags = local.common_tags
 }
 
 # ------------------------------------------------------------
@@ -21,7 +47,8 @@ module "ecs_service" {
   
   # Data sources (from infrastructure)
   vpc_id                = data.aws_vpc.main.id
-  subnet_ids            = data.aws_subnets.private.ids
+  subnet_ids            = data.aws_subnets.public.ids
+  assign_public_ip      = true
   alb_security_group_id = data.aws_security_group.alb.id
   alb_target_group_arn  = data.aws_lb_target_group.main.arn
   ecs_cluster_id        = data.aws_ecs_cluster.main.id
@@ -45,8 +72,14 @@ module "ecs_service" {
   environment_variables = merge(
     var.environment_variables,
     {
-      # Dynamically inject Knowledge Base ID from infra remote state
-      KNOWLEDGE_BASE_ID = data.terraform_remote_state.infra.outputs.knowledge_base_id
+      # Dynamically inject shared platform settings from infra remote state
+      KNOWLEDGE_BASE_ID     = data.terraform_remote_state.infra.outputs.knowledge_base_id
+      COGNITO_USER_POOL_ID  = data.terraform_remote_state.infra.outputs.cognito_user_pool_id
+      COGNITO_CLIENT_ID     = data.terraform_remote_state.infra.outputs.cognito_app_client_id
+      COGNITO_REGION        = data.terraform_remote_state.infra.outputs.aws_region
+      COGNITO_DOMAIN        = data.terraform_remote_state.infra.outputs.cognito_hosted_ui_domain
+      GUARDRAIL_ID          = module.bedrock_guardrails.guardrail_id
+      GUARDRAIL_VERSION     = module.bedrock_guardrails.guardrail_version
     }
   )
   secrets               = var.secrets
