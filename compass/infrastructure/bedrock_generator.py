@@ -11,8 +11,8 @@ from compass.infrastructure.prompt_loader import load_prompt, render_prompt
 def generate(query: str, context_chunks: list[str]) -> str:
     """Generate an answer using Bedrock with prompts loaded from the shared prompts folder."""
     context = "\n\n---\n\n".join(context_chunks) if context_chunks else "No relevant context was retrieved."
-    system_prompt = load_prompt("rag/system.txt")
-    user_prompt = render_prompt("rag/user.txt", context=context, question=query)
+    system_prompt = load_prompt("rag/system.md")
+    user_prompt = render_prompt("rag/user.md", context=context, question=query)
 
     client = boto3.client("bedrock-runtime", region_name=settings.aws_region)
     response = client.invoke_model(

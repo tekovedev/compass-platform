@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from compass.infrastructure.bedrock_guardrails import check_input, check_output
 from compass.infrastructure.bedrock_retriever import retrieve
 from compass.infrastructure.bedrock_generator import generate
+from compass.infrastructure.query_expander import expand_query
 
 
 @dataclass
@@ -21,7 +22,8 @@ class QueryService:
         Lets GuardrailViolation propagate to the caller.
         """
         await asyncio.to_thread(check_input, query)
-        context_chunks = await asyncio.to_thread(retrieve, query, top_k)
+        queries = await asyncio.to_thread(expand_query, query)
+        context_chunks = await asyncio.to_thread(retrieve, queries, top_k)
         answer = await asyncio.to_thread(generate, query, context_chunks)
         await asyncio.to_thread(check_output, answer)
         return QueryResult(answer=answer, sources=context_chunks)
