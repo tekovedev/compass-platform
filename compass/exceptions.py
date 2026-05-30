@@ -18,3 +18,11 @@ class GuardrailViolation(Exception):
         super().__init__(
             f"Guardrail {source} violation: {result.message}"
         )
+
+
+class QuotaExceeded(Exception):
+    def __init__(self, user_id: str, limit: int, used: int) -> None:
+        self.user_id = user_id
+        self.limit = limit
+        self.used = used
+        super().__init__(f"Monthly token quota exceeded for user {user_id}: {used}/{limit}")

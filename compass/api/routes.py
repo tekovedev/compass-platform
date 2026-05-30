@@ -1,7 +1,9 @@
+from collections.abc import Mapping
+
 from fastapi import APIRouter, Depends, HTTPException
 
-from compass.api.auth import require_auth
-from compass.exceptions import GuardrailViolation
+from compass.api.auth import get_user_id_from_claims, require_auth
+from compass.exceptions import GuardrailViolation, QuotaExceeded
 from compass.api.schemas import (
     IngestRequest,
     IngestResponse,
@@ -34,10 +36,17 @@ async def ingest(
 @router.post("/query", response_model=QueryResponse)
 async def query(
     request: QueryRequest,
-    _: dict = Depends(require_auth),
+    claims: Mapping[str, object] = Depends(require_auth),
 ) -> QueryResponse:
+    user_id = get_user_id_from_claims(claims)
+
     try:
-        result = await _query_service.execute(request.query, top_k=request.top_k)
+        result = await _query_service.execute(
+            request.query,
+            user_id=user_id,
+            session_id=request.session_id,
+            top_k=request.top_k,
+        )
     except GuardrailViolation as exc:
         if exc.source == "INPUT":
             raise HTTPException(
@@ -48,4 +57,20 @@ async def query(
             status_code=500,
             detail={"error": "guardrail_output_violation", "message": exc.result.message},
         )
-    return QueryResponse(answer=result.answer, sources=result.sources)
+    except QuotaExceeded as exc:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "error": "token_quota_exceeded",
+                "message": "Monthly token quota exceeded",
+                "limit": exc.limit,
+                "used": exc.used,
+            },
+        )
+    return QueryResponse(
+        answer=result.answer,
+        sources=result.sources,
+        session_id=result.session_id,
+        input_tokens=result.input_tokens,
+        output_tokens=result.output_tokens,
+    )

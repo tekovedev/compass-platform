@@ -155,6 +155,21 @@ variable "knowledge_base_arn" {
   default     = "*"
 }
 
+variable "chat_sessions_table_arn" {
+  description = "ARN of the DynamoDB table that stores chat sessions"
+  type        = string
+}
+
+variable "chat_conversations_table_arn" {
+  description = "ARN of the DynamoDB table that stores chat messages"
+  type        = string
+}
+
+variable "chat_monthly_usage_table_arn" {
+  description = "ARN of the DynamoDB table that stores per-user monthly token usage"
+  type        = string
+}
+
 # Tags
 variable "tags" {
   description = "Additional tags for resources"

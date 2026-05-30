@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     cognito_client_id: str | None = None
     cognito_domain: str | None = None
     cognito_region: str | None = None
+    chat_sessions_table_name: str | None = None
+    chat_conversations_table_name: str | None = None
+    chat_monthly_usage_table_name: str | None = None
+    monthly_token_limit: int = 200000
 
     model_config = {"env_file": ".env", "extra": "ignore"}
 

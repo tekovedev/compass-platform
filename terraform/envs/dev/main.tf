@@ -7,9 +7,9 @@ locals {
     Component   = "platform-service"
   }
 
-  guardrail_prompts_dir           = abspath("${path.root}/../../prompts/guardrails")
-  guardrail_blocked_input_message = try(trimspace(file("${local.guardrail_prompts_dir}/blocked_input.txt")), var.guardrail_blocked_input_message)
-  guardrail_blocked_output_message = try(trimspace(file("${local.guardrail_prompts_dir}/blocked_output.txt")), var.guardrail_blocked_output_message)
+  guardrail_prompts_dir             = abspath("${path.root}/../../prompts/guardrails")
+  guardrail_blocked_input_message   = try(trimspace(file("${local.guardrail_prompts_dir}/blocked_input.txt")), var.guardrail_blocked_input_message)
+  guardrail_blocked_output_message  = try(trimspace(file("${local.guardrail_prompts_dir}/blocked_output.txt")), var.guardrail_blocked_output_message)
   guardrail_denied_topics_from_file = try(jsondecode(file("${local.guardrail_prompts_dir}/denied_topics.json")), [])
 }
 
@@ -20,11 +20,11 @@ locals {
 module "bedrock_guardrails" {
   source = "../../modules/bedrock_guardrails"
 
-  project_name             = "compass-platform"
-  environment              = var.environment
-  enabled                  = var.enable_guardrails
-  name                     = var.guardrail_name
-  description              = var.guardrail_description
+  project_name              = "compass-platform"
+  environment               = var.environment
+  enabled                   = var.enable_guardrails
+  name                      = var.guardrail_name
+  description               = var.guardrail_description
   blocked_input_messaging   = local.guardrail_blocked_input_message
   blocked_outputs_messaging = local.guardrail_blocked_output_message
   publish_version           = var.guardrail_publish_version
@@ -42,9 +42,9 @@ module "ecs_service" {
   source = "../../modules/ecs_service"
 
   # General
-  environment   = var.environment
-  project_name  = "compass-platform"
-  
+  environment  = var.environment
+  project_name = "compass-platform"
+
   # Data sources (from infrastructure)
   vpc_id                = data.aws_vpc.main.id
   subnet_ids            = data.aws_subnets.public.ids
@@ -66,23 +66,30 @@ module "ecs_service" {
   image_tag      = var.image_tag
 
   # AWS Resources
-  knowledge_base_arn = data.terraform_remote_state.infra.outputs.knowledge_base_arn
+  knowledge_base_arn           = data.terraform_remote_state.infra.outputs.knowledge_base_arn
+  chat_sessions_table_arn      = data.terraform_remote_state.infra.outputs.chat_sessions_table_arn
+  chat_conversations_table_arn = data.terraform_remote_state.infra.outputs.chat_conversations_table_arn
+  chat_monthly_usage_table_arn = data.terraform_remote_state.infra.outputs.chat_monthly_usage_table_arn
 
   # Environment Variables & Secrets
   environment_variables = merge(
     var.environment_variables,
     {
       # Dynamically inject shared platform settings from infra remote state
-      KNOWLEDGE_BASE_ID     = data.terraform_remote_state.infra.outputs.knowledge_base_id
-      COGNITO_USER_POOL_ID  = data.terraform_remote_state.infra.outputs.cognito_user_pool_id
-      COGNITO_CLIENT_ID     = data.terraform_remote_state.infra.outputs.cognito_app_client_id
-      COGNITO_REGION        = data.terraform_remote_state.infra.outputs.aws_region
-      COGNITO_DOMAIN        = data.terraform_remote_state.infra.outputs.cognito_hosted_ui_domain
-      GUARDRAIL_ID          = module.bedrock_guardrails.guardrail_id
-      GUARDRAIL_VERSION     = module.bedrock_guardrails.guardrail_version
+      KNOWLEDGE_BASE_ID             = data.terraform_remote_state.infra.outputs.knowledge_base_id
+      COGNITO_USER_POOL_ID          = data.terraform_remote_state.infra.outputs.cognito_user_pool_id
+      COGNITO_CLIENT_ID             = data.terraform_remote_state.infra.outputs.cognito_app_client_id
+      COGNITO_REGION                = data.terraform_remote_state.infra.outputs.aws_region
+      COGNITO_DOMAIN                = data.terraform_remote_state.infra.outputs.cognito_hosted_ui_domain
+      CHAT_SESSIONS_TABLE_NAME      = data.terraform_remote_state.infra.outputs.chat_sessions_table_name
+      CHAT_CONVERSATIONS_TABLE_NAME = data.terraform_remote_state.infra.outputs.chat_conversations_table_name
+      CHAT_MONTHLY_USAGE_TABLE_NAME = data.terraform_remote_state.infra.outputs.chat_monthly_usage_table_name
+      MONTHLY_TOKEN_LIMIT           = "200000"
+      GUARDRAIL_ID                  = module.bedrock_guardrails.guardrail_id
+      GUARDRAIL_VERSION             = module.bedrock_guardrails.guardrail_version
     }
   )
-  secrets               = var.secrets
+  secrets = var.secrets
 
   # Auto Scaling
   enable_autoscaling        = var.enable_autoscaling

@@ -106,6 +106,27 @@ resource "aws_iam_role_policy" "task_app_permissions" {
           "arn:aws:s3:::compass-${var.environment}-*",
           "arn:aws:s3:::compass-${var.environment}-*/*"
         ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:DescribeTable",
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:UpdateItem",
+          "dynamodb:DeleteItem",
+          "dynamodb:Query",
+          "dynamodb:Scan",
+          "dynamodb:BatchWriteItem"
+        ]
+        Resource = [
+          var.chat_sessions_table_arn,
+          var.chat_conversations_table_arn,
+          var.chat_monthly_usage_table_arn,
+          "${var.chat_sessions_table_arn}/index/*",
+          "${var.chat_conversations_table_arn}/index/*",
+          "${var.chat_monthly_usage_table_arn}/index/*"
+        ]
       }
     ]
   })

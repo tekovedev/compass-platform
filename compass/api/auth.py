@@ -71,6 +71,14 @@ class CognitoAuthorizer:
 authorizer = CognitoAuthorizer()
 
 
+def get_user_id_from_claims(claims: Mapping[str, object]) -> str:
+    for key in ("sub", "cognito:username", "username", "email"):
+        value = claims.get(key)
+        if isinstance(value, str) and value:
+            return value
+    return "anonymous"
+
+
 async def require_auth(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
 ) -> Mapping[str, object]:
