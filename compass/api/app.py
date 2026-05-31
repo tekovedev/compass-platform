@@ -1,6 +1,13 @@
+import logging
+
 from fastapi import FastAPI
 
 from compass.api.routes import router
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
 
 
 def create_app() -> FastAPI:

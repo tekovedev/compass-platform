@@ -38,7 +38,10 @@ def expand_query(query: str) -> list[str]:
         )
         result = json.loads(response["body"].read())
         text = result["output"]["message"]["content"][0]["text"]
-        queries = json.loads(text)
+        logger.info("Query expander raw response: %r", text)
+        # Strip markdown code fences if the model wraps the JSON
+        stripped = text.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+        queries = json.loads(stripped)
         if isinstance(queries, list) and all(isinstance(q, str) for q in queries):
             return queries
     except Exception:

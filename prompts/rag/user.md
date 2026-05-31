@@ -12,6 +12,7 @@
 Generate a precise legal answer to the user's inquiry using only the provided context.
 
 ## Structure
+
 - Use prose and bullets for readability.
 - Use a table only for direct comparisons.
 - Keep the answer concise and actionable.
