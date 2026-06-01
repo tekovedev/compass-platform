@@ -5,13 +5,19 @@ import json
 
 import boto3
 
+import logging
+
 from compass.config import settings
 from compass.infrastructure.prompt_loader import load_prompt, render_prompt
+from compass.infrastructure.source_formatter import extract_articles
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
 class GenerationResult:
     answer: str
+    sources: list[str]
     input_tokens: int = 0
     output_tokens: int = 0
 
@@ -26,9 +32,12 @@ def generate(
     if conversation_history:
         context_parts.append(conversation_history)
     if context_chunks:
-        context_parts.append("\n\n---\n\n".join(context_chunks))
+        articles = extract_articles(context_chunks)
+        formatted = articles if articles else context_chunks
+        context_parts.extend(formatted)
 
     context = "\n\n---\n\n".join(context_parts) if context_parts else "No relevant context was retrieved."
+    logger.info("context sent to LLM:\n%s", context)
     system_prompt = load_prompt("rag/system.md")
     user_prompt = render_prompt("rag/user.md", context=context, question=query)
 
@@ -59,6 +68,7 @@ def generate(
 
     return GenerationResult(
         answer=answer,
+        sources=formatted,
         input_tokens=_usage_value("inputTokens", "input_tokens"),
         output_tokens=_usage_value("outputTokens", "output_tokens"),
     )

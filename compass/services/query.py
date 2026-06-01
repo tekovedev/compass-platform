@@ -90,7 +90,7 @@ class QueryService:
 
         return QueryResult(
             answer=answer,
-            sources=context_chunks,
+            sources=generation.sources,
             session_id=resolved_session_id,
             input_tokens=generation.input_tokens,
             output_tokens=generation.output_tokens,
