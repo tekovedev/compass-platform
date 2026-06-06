@@ -1,10 +1,6 @@
 # Scripts
 
-## Ingest
+## Note
 
-Split an HTML file into chunks (one per line) using the HTML section splitter.
-
-```bash
-python scripts/ingest.py data/BO-COD-DL10135.html                      # outputs to data/chunks.txt
-python scripts/ingest.py data/BO-COD-DL10135.html -o output/chunks.txt  # custom output
-```
+Local ingestion/chunking scripts were removed from `compass-platform`.
+Knowledge Base data preparation and sync are now managed from `compass-knowledge-hub`.

@@ -5,32 +5,19 @@ from fastapi import APIRouter, Depends, HTTPException
 from compass.api.auth import get_user_id_from_claims, require_auth
 from compass.exceptions import GuardrailViolation, QuotaExceeded
 from compass.api.schemas import (
-    IngestRequest,
-    IngestResponse,
     QueryRequest,
     QueryResponse,
 )
 from compass.services.query import QueryService
-from compass.services.ingest import IngestService
 
 router = APIRouter()
 
 _query_service = QueryService()
-_ingest_service = IngestService()
 
 
 @router.get("/healthcheck")
 async def healthcheck():
     return {"status": "healthy"}
-
-
-@router.post("/ingest", response_model=IngestResponse)
-async def ingest(
-    request: IngestRequest,
-    _: dict = Depends(require_auth),
-) -> IngestResponse:
-    chunks_stored = await _ingest_service.execute(request.path)
-    return IngestResponse(chunks_stored=chunks_stored)
 
 
 @router.post("/query", response_model=QueryResponse)

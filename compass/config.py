@@ -8,9 +8,7 @@ class Settings(BaseSettings):
     embedding_model_id: str = "amazon.titan-embed-text-v2:0"
     llm_model_id: str = "amazon.nova-pro-v1:0"
     query_expansion_model_id: str = "amazon.nova-lite-v1:0"
-    knowledge_base_id: str = "0ZAUEJ8LFT"
-    chunk_size: int = 500
-    chunk_overlap: int = 50
+    knowledge_base_id: str = ""
     guardrail_id: str | None = None
     guardrail_version: str = "DRAFT"
     cognito_user_pool_id: str | None = None

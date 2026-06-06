@@ -1,6 +1,6 @@
 # Compass Platform
 
-RAG API built on FastAPI, AWS Bedrock, and OpenSearch Serverless.
+RAG API built on FastAPI and AWS Bedrock Knowledge Bases.
 
 ## Prerequisites
 
@@ -38,7 +38,6 @@ curl http://localhost:8000/api/v1/healthcheck
 |--------|------|-------------|
 | GET | `/api/v1/healthcheck` | Health check (public) |
 | POST | `/api/v1/query` | Ask a question against the knowledge base |
-| POST | `/api/v1/ingest` | Ingest documents from a local directory |
 
 ### Query
 
@@ -48,13 +47,7 @@ curl -X POST http://localhost:8000/api/v1/query \
   -d '{"query": "your question here", "top_k": 5}'
 ```
 
-### Ingest
-
-```bash
-curl -X POST http://localhost:8000/api/v1/ingest \
-  -H "Content-Type: application/json" \
-  -d '{"path": "data/"}'
-```
+Data ingestion/sync for the Knowledge Base is managed from the `compass-knowledge-hub` repository.
 
 ## Authentication
 
