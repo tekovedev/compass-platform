@@ -56,7 +56,7 @@ module "ecs_service" {
   ecr_repository_url    = data.aws_ecr_repository.platform.repository_url
   log_group_name        = data.aws_cloudwatch_log_group.ecs.name
   log_group_arn         = data.aws_cloudwatch_log_group.ecs.arn
-  aws_region            = data.aws_region.current.id
+  aws_region            = var.aws_region
 
   # ECS Task Configuration
   cpu            = var.cpu
@@ -66,7 +66,7 @@ module "ecs_service" {
   image_tag      = var.image_tag
 
   # AWS Resources
-  knowledge_base_arn           = data.terraform_remote_state.infra.outputs.knowledge_base_arn
+  knowledge_base_arn           = data.terraform_remote_state.knowledge_hub.outputs.knowledge_base_arn
   chat_sessions_table_arn      = data.terraform_remote_state.infra.outputs.chat_sessions_table_arn
   chat_conversations_table_arn = data.terraform_remote_state.infra.outputs.chat_conversations_table_arn
   chat_monthly_usage_table_arn = data.terraform_remote_state.infra.outputs.chat_monthly_usage_table_arn
@@ -76,7 +76,7 @@ module "ecs_service" {
     var.environment_variables,
     {
       # Dynamically inject shared platform settings from infra remote state
-      KNOWLEDGE_BASE_ID             = data.terraform_remote_state.infra.outputs.knowledge_base_id
+      KNOWLEDGE_BASE_ID             = data.terraform_remote_state.knowledge_hub.outputs.knowledge_base_id
       COGNITO_USER_POOL_ID          = data.terraform_remote_state.infra.outputs.cognito_user_pool_id
       COGNITO_CLIENT_ID             = data.terraform_remote_state.infra.outputs.cognito_app_client_id
       COGNITO_REGION                = data.terraform_remote_state.infra.outputs.aws_region
