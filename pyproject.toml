@@ -27,6 +27,9 @@ ruff = "^0.9"
 # FastAPI service image. The service talks to the runtime via boto3's
 # bedrock-agentcore client, so it needs neither the Strands framework nor the
 # AgentCore runtime SDK.
+[tool.poetry.group.agent]
+optional = true
+
 [tool.poetry.group.agent.dependencies]
 strands-agents = "^1.43"
 bedrock-agentcore = "^1.14"
