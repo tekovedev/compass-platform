@@ -2,6 +2,11 @@
 aws_region  = "us-east-1"
 environment = "dev"
 
+# AgentCore Runtime (Strands agent)
+enable_agentcore    = true
+agent_image_tag     = "latest"
+agent_enable_memory = false
+
 # ECS Task Configuration
 cpu            = 256
 memory         = 512

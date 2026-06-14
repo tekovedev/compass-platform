@@ -10,6 +10,25 @@ variable "environment" {
   type        = string
 }
 
+# AgentCore (parallel agent runtime — disabled by default until the image is built)
+variable "enable_agentcore" {
+  description = "Create the AgentCore runtime for the Strands agent"
+  type        = bool
+  default     = false
+}
+
+variable "agent_image_tag" {
+  description = "Container image tag for the AgentCore runtime"
+  type        = string
+  default     = "latest"
+}
+
+variable "agent_enable_memory" {
+  description = "Create an AgentCore Memory store for the agent"
+  type        = bool
+  default     = false
+}
+
 # Bedrock Guardrails
 variable "enable_guardrails" {
   description = "Whether the backend Terraform should create and manage a Bedrock guardrail"

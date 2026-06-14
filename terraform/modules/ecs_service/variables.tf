@@ -170,6 +170,12 @@ variable "chat_monthly_usage_table_arn" {
   type        = string
 }
 
+variable "agentcore_runtime_arn" {
+  description = "ARN of the AgentCore runtime the service delegates to (null disables the permission)"
+  type        = string
+  default     = null
+}
+
 # Tags
 variable "tags" {
   description = "Additional tags for resources"

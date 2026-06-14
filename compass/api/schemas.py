@@ -3,7 +3,6 @@ from pydantic import BaseModel
 
 class QueryRequest(BaseModel):
     query: str
-    top_k: int = 5
     session_id: str | None = None
 
 

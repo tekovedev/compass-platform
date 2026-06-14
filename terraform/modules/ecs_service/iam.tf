@@ -132,6 +132,27 @@ resource "aws_iam_role_policy" "task_app_permissions" {
   })
 }
 
+# Permission to invoke the AgentCore runtime (generation is delegated to it)
+resource "aws_iam_role_policy" "task_agentcore" {
+  count = var.agentcore_runtime_arn != null ? 1 : 0
+  name  = "${var.project_name}-${var.environment}-agentcore"
+  role  = aws_iam_role.task.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = ["bedrock-agentcore:InvokeAgentRuntime"]
+        Resource = [
+          var.agentcore_runtime_arn,
+          "${var.agentcore_runtime_arn}/*"
+        ]
+      }
+    ]
+  })
+}
+
 # Policy for ECS Exec (debugging)
 resource "aws_iam_role_policy" "task_exec_policy" {
   count = var.enable_ecs_exec ? 1 : 0

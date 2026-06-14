@@ -4,11 +4,9 @@ import asyncio
 from dataclasses import dataclass
 
 from compass.infrastructure.bedrock_guardrails import check_input, check_output
-from compass.infrastructure.bedrock_retriever import retrieve
-from compass.infrastructure.bedrock_generator import generate
+from compass.infrastructure.agentcore_client import invoke_agent
 from compass.infrastructure.conversation_store import ConversationStore
 from compass.infrastructure.token_quota_store import TokenQuotaStore
-from compass.infrastructure.query_expander import expand_query
 
 
 @dataclass
@@ -34,9 +32,12 @@ class QueryService:
         query: str,
         user_id: str,
         session_id: str | None = None,
-        top_k: int = 5,
     ) -> QueryResult:
-        """Run the full query pipeline: guardrails -> retrieve -> generate -> guardrails.
+        """Run the full query pipeline: guardrails -> AgentCore -> guardrails.
+
+        Retrieval and generation are delegated to the AgentCore runtime, which
+        decides whether to consult the Knowledge Base. Auth, quota, guardrails
+        and conversation persistence stay in this service.
 
         Lets GuardrailViolation propagate to the caller.
         """
@@ -66,15 +67,16 @@ class QueryService:
             query,
         )
 
-        queries = await asyncio.to_thread(expand_query, query)
-        context_chunks = await asyncio.to_thread(retrieve, queries, top_k)
-        generation = await asyncio.to_thread(generate, query, context_chunks, history_text or None)
-        answer = generation.answer
+        answer, sources = await asyncio.to_thread(
+            invoke_agent,
+            query,
+            resolved_session_id,
+            history_text or None,
+        )
         await asyncio.to_thread(check_output, answer)
 
-        consumed_tokens = generation.input_tokens + generation.output_tokens
-        if consumed_tokens == 0:
-            consumed_tokens = max(1, len(query) // 4) + max(1, len(answer) // 4)
+        # AgentCore does not return token usage; estimate from text length.
+        consumed_tokens = max(1, len(query) // 4) + max(1, len(answer) // 4)
         await asyncio.to_thread(self.quota_store.consume, user_id, consumed_tokens)
 
         await asyncio.to_thread(
@@ -83,15 +85,11 @@ class QueryService:
             resolved_session_id,
             "assistant",
             answer,
-            generation.input_tokens,
-            generation.output_tokens,
         )
         await asyncio.to_thread(self.conversation_store.touch_session, user_id, resolved_session_id)
 
         return QueryResult(
             answer=answer,
-            sources=generation.sources,
+            sources=sources,
             session_id=resolved_session_id,
-            input_tokens=generation.input_tokens,
-            output_tokens=generation.output_tokens,
         )

@@ -70,6 +70,7 @@ module "ecs_service" {
   chat_sessions_table_arn      = data.terraform_remote_state.infra.outputs.chat_sessions_table_arn
   chat_conversations_table_arn = data.terraform_remote_state.infra.outputs.chat_conversations_table_arn
   chat_monthly_usage_table_arn = data.terraform_remote_state.infra.outputs.chat_monthly_usage_table_arn
+  agentcore_runtime_arn        = var.enable_agentcore ? module.agentcore[0].agent_runtime_arn : null
 
   # Environment Variables & Secrets
   environment_variables = merge(
@@ -87,6 +88,7 @@ module "ecs_service" {
       MONTHLY_TOKEN_LIMIT           = "200000"
       GUARDRAIL_ID                  = module.bedrock_guardrails.guardrail_id
       GUARDRAIL_VERSION             = module.bedrock_guardrails.guardrail_version
+      AGENTCORE_RUNTIME_ARN         = var.enable_agentcore ? module.agentcore[0].agent_runtime_arn : ""
     }
   )
   secrets = var.secrets
@@ -102,5 +104,25 @@ module "ecs_service" {
   enable_ecs_exec = var.enable_ecs_exec
 
   # Tags
+  tags = local.common_tags
+}
+
+# ------------------------------------------------------------
+# Module: AgentCore Runtime (Strands agent)
+# Parallel track to the ECS service. Gated by enable_agentcore so the
+# ECR repo can be created and the image pushed before the runtime.
+# ------------------------------------------------------------
+module "agentcore" {
+  count  = var.enable_agentcore ? 1 : 0
+  source = "../../modules/agentcore"
+
+  project_name      = "compass"
+  environment       = var.environment
+  aws_region        = var.aws_region
+  image_tag         = var.agent_image_tag
+  knowledge_base_id = data.terraform_remote_state.knowledge_hub.outputs.knowledge_base_id
+  llm_model_id      = var.environment_variables["LLM_MODEL_ID"]
+  enable_memory     = var.agent_enable_memory
+
   tags = local.common_tags
 }

@@ -7,9 +7,9 @@ FROM --platform=linux/arm64 python:3.11-slim AS builder
 
 RUN pip install poetry==1.8.0
 WORKDIR /app
-COPY pyproject.toml ./
+COPY pyproject.toml poetry.lock ./
 RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi --no-root --only main
+    && poetry install --no-interaction --no-ansi --no-root --only main,agent
 
 FROM --platform=linux/arm64 python:3.11-slim
 

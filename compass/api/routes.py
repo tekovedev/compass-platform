@@ -32,7 +32,6 @@ async def query(
             request.query,
             user_id=user_id,
             session_id=request.session_id,
-            top_k=request.top_k,
         )
     except GuardrailViolation as exc:
         if exc.source == "INPUT":
