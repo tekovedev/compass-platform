@@ -4,7 +4,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">= 6.27.0"
+      version = ">= 6.50.0" # aws_bedrockagentcore_agent_runtime / _memory
     }
   }
 

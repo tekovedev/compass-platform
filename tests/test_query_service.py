@@ -48,16 +48,12 @@ def test_query_service_persists_session_and_messages(monkeypatch):
 
     monkeypatch.setattr("compass.services.query.check_input", lambda query: None)
     monkeypatch.setattr("compass.services.query.check_output", lambda answer: None)
-    monkeypatch.setattr("compass.services.query.expand_query", lambda query: [query])
-    monkeypatch.setattr("compass.services.query.retrieve", lambda queries, top_k: ["chunk-1"])
 
-    def fake_generate(query: str, context_chunks: list[str], conversation_history: str | None = None):
-        from compass.infrastructure.bedrock_generator import GenerationResult
+    def fake_invoke_agent(query: str, session_id: str | None = None, history: str | None = None):
+        assert history is None
+        return f"echo:{query}", ["chunk-1"]
 
-        assert conversation_history is None
-        return GenerationResult(answer=f"echo:{query}", input_tokens=3, output_tokens=5)
-
-    monkeypatch.setattr("compass.services.query.generate", fake_generate)
+    monkeypatch.setattr("compass.services.query.invoke_agent", fake_invoke_agent)
 
     store = FakeConversationStore()
     quota = FakeQuotaStore()
@@ -72,4 +68,4 @@ def test_query_service_persists_session_and_messages(monkeypatch):
     assert store.messages[1][2] == "assistant"
     assert store.touched == [("user-1", "session-1")]
     assert quota.ensure_calls[0][0] == "user-1"
-    assert quota.consume_calls == [("user-1", 8)]
+    assert quota.consume_calls == [("user-1", 3)]

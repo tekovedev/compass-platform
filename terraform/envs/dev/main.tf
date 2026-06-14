@@ -70,6 +70,7 @@ module "ecs_service" {
   chat_sessions_table_arn      = data.terraform_remote_state.infra.outputs.chat_sessions_table_arn
   chat_conversations_table_arn = data.terraform_remote_state.infra.outputs.chat_conversations_table_arn
   chat_monthly_usage_table_arn = data.terraform_remote_state.infra.outputs.chat_monthly_usage_table_arn
+  agentcore_runtime_arn        = var.enable_agentcore ? module.agentcore[0].agent_runtime_arn : null
 
   # Environment Variables & Secrets
   environment_variables = merge(
@@ -87,6 +88,7 @@ module "ecs_service" {
       MONTHLY_TOKEN_LIMIT           = "200000"
       GUARDRAIL_ID                  = module.bedrock_guardrails.guardrail_id
       GUARDRAIL_VERSION             = module.bedrock_guardrails.guardrail_version
+      AGENTCORE_RUNTIME_ARN         = var.enable_agentcore ? module.agentcore[0].agent_runtime_arn : ""
     }
   )
   secrets = var.secrets

@@ -44,7 +44,7 @@ def test_query_requires_authentication_when_cognito_enabled(monkeypatch):
     from compass.api import routes
     from compass.config import settings
 
-    async def fake_execute(query: str, user_id: str, session_id: str | None = None, top_k: int = 5):
+    async def fake_execute(query: str, user_id: str, session_id: str | None = None):
         return SimpleNamespace(
             answer=f"echo:{query}",
             sources=[],
@@ -63,7 +63,7 @@ def test_query_requires_authentication_when_cognito_enabled(monkeypatch):
 
     try:
         client = TestClient(app)
-        response = client.post("/api/v1/query", json={"query": "hola", "top_k": 3})
+        response = client.post("/api/v1/query", json={"query": "hola"})
         assert response.status_code == 401
     finally:
         settings.cognito_user_pool_id = original_pool_id
@@ -78,12 +78,11 @@ def test_query_returns_session_id_when_auth_disabled(monkeypatch):
 
     captured: dict[str, object] = {}
 
-    async def fake_execute(query: str, user_id: str, session_id: str | None = None, top_k: int = 5):
+    async def fake_execute(query: str, user_id: str, session_id: str | None = None):
         captured.update({
             "query": query,
             "user_id": user_id,
             "session_id": session_id,
-            "top_k": top_k,
         })
 
         return SimpleNamespace(
@@ -104,7 +103,7 @@ def test_query_returns_session_id_when_auth_disabled(monkeypatch):
 
     try:
         client = TestClient(app)
-        response = client.post("/api/v1/query", json={"query": "hola", "top_k": 3})
+        response = client.post("/api/v1/query", json={"query": "hola"})
         assert response.status_code == 200
 
         body = response.json()
@@ -126,7 +125,7 @@ def test_query_returns_429_when_quota_exceeded(monkeypatch):
     from compass.config import settings
     from compass.exceptions import QuotaExceeded
 
-    async def fake_execute(query: str, user_id: str, session_id: str | None = None, top_k: int = 5):
+    async def fake_execute(query: str, user_id: str, session_id: str | None = None):
         raise QuotaExceeded(user_id=user_id, limit=1000, used=1000)
 
     monkeypatch.setattr(routes._query_service, "execute", fake_execute)
@@ -139,7 +138,7 @@ def test_query_returns_429_when_quota_exceeded(monkeypatch):
 
     try:
         client = TestClient(app)
-        response = client.post("/api/v1/query", json={"query": "hola", "top_k": 3})
+        response = client.post("/api/v1/query", json={"query": "hola"})
         assert response.status_code == 429
         body = response.json()
         assert body["detail"]["error"] == "token_quota_exceeded"
