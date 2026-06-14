@@ -4,6 +4,17 @@ output "guardrail_id" {
   value       = module.bedrock_guardrails.guardrail_id
 }
 
+# AgentCore Runtime (null when disabled)
+output "agentcore_runtime_arn" {
+  description = "ARN of the AgentCore runtime"
+  value       = var.enable_agentcore ? module.agentcore[0].agent_runtime_arn : null
+}
+
+output "agentcore_ecr_repository_url" {
+  description = "ECR repo for the agent image"
+  value       = var.enable_agentcore ? module.agentcore[0].ecr_repository_url : null
+}
+
 output "guardrail_arn" {
   description = "Managed Bedrock guardrail ARN"
   value       = module.bedrock_guardrails.guardrail_arn

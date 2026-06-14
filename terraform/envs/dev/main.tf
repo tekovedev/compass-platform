@@ -104,3 +104,23 @@ module "ecs_service" {
   # Tags
   tags = local.common_tags
 }
+
+# ------------------------------------------------------------
+# Module: AgentCore Runtime (Strands agent)
+# Parallel track to the ECS service. Gated by enable_agentcore so the
+# ECR repo can be created and the image pushed before the runtime.
+# ------------------------------------------------------------
+module "agentcore" {
+  count  = var.enable_agentcore ? 1 : 0
+  source = "../../modules/agentcore"
+
+  project_name      = "compass"
+  environment       = var.environment
+  aws_region        = var.aws_region
+  image_tag         = var.agent_image_tag
+  knowledge_base_id = data.terraform_remote_state.knowledge_hub.outputs.knowledge_base_id
+  llm_model_id      = var.environment_variables["LLM_MODEL_ID"]
+  enable_memory     = var.agent_enable_memory
+
+  tags = local.common_tags
+}
