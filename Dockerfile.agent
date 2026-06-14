@@ -1,0 +1,32 @@
+# AgentCore Runtime image for the Tránsito Seguro agent.
+# AgentCore Runtime requires linux/arm64 and the agent to serve on port 8080
+# (BedrockAgentCoreApp wires POST /invocations and GET /ping automatically).
+#
+# Build:  docker build --platform linux/arm64 -f Dockerfile.agent -t compass-agent .
+FROM --platform=linux/arm64 python:3.11-slim AS builder
+
+RUN pip install poetry==1.8.0
+WORKDIR /app
+COPY pyproject.toml ./
+RUN poetry config virtualenvs.create false \
+    && poetry install --no-interaction --no-ansi --no-root --only main
+
+FROM --platform=linux/arm64 python:3.11-slim
+
+WORKDIR /app
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+COPY compass/ ./compass/
+COPY prompts/ ./prompts/
+
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
+
+ENV PYTHONUNBUFFERED=1
+ENV AWS_REGION=us-east-1
+
+# AgentCore Runtime contract port
+EXPOSE 8080
+
+CMD ["python", "-m", "compass.agent.runtime"]

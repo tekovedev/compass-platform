@@ -1,0 +1,56 @@
+"""Strands tools for the Tránsito Seguro agent.
+
+The Bedrock Knowledge Base retrieval is exposed here as a *tool* so the model
+decides — per turn — whether it needs to consult the Código de Tránsito. A plain
+greeting no longer forces a retrieval (and therefore no longer attaches sources).
+"""
+
+from __future__ import annotations
+
+import threading
+
+from strands import tool
+
+from compass.infrastructure.bedrock_retriever import retrieve
+
+# Captures the chunks retrieved during a single agent invocation, so the runtime
+# entrypoint can surface them as `sources` only when the tool was actually used.
+# A module-level list (not a contextvar) is used on purpose: Strands runs tools
+# on worker threads, and contextvar writes there would not be visible to the
+# calling thread. This assumes one invocation at a time per process — fine for an
+# AgentCore runtime instance, which isolates sessions.
+_lock = threading.Lock()
+_retrieved_sources: list[str] = []
+
+
+def reset_sources() -> None:
+    """Start a fresh source-capture scope for one agent invocation."""
+    with _lock:
+        _retrieved_sources.clear()
+
+
+def collected_sources() -> list[str]:
+    """Return the chunks retrieved so far in the current invocation."""
+    with _lock:
+        return list(_retrieved_sources)
+
+
+@tool
+def buscar_codigo_transito(consulta: str) -> str:
+    """Busca artículos relevantes del Código de Tránsito de Bolivia.
+
+    Úsala únicamente cuando el usuario haga una pregunta legal o normativa sobre
+    tránsito en Bolivia. No la uses para saludos, agradecimientos ni charla casual.
+
+    Args:
+        consulta: La pregunta o tema legal a buscar en el Código de Tránsito.
+
+    Returns:
+        Los fragmentos legales relevantes, separados por '---'.
+    """
+    chunks = retrieve([consulta], top_k=5)
+    with _lock:
+        _retrieved_sources.extend(chunks)
+    if not chunks:
+        return "No se encontraron artículos relevantes en el corpus actual."
+    return "\n\n---\n\n".join(chunks)
