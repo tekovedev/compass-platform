@@ -29,6 +29,7 @@ def generate(
 ) -> GenerationResult:
     """Generate an answer using Bedrock with prompts loaded from the shared prompts folder."""
     context_parts: list[str] = []
+    formatted: list[str] = []
     if conversation_history:
         context_parts.append(conversation_history)
     if context_chunks:
