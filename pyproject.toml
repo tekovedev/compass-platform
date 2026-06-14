@@ -18,6 +18,9 @@ beautifulsoup4 = "^4.14.3"
 langchain-text-splitters = "^1.1.0"
 lxml = "^6.0.2"
 PyJWT = "^2.10.1"
+# AgentCore migration: agent framework + runtime SDK
+strands-agents = "^1.43"
+bedrock-agentcore = "^1.14"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0"
