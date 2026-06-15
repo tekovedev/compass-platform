@@ -12,6 +12,7 @@ import threading
 from strands import tool
 
 from compass.infrastructure.bedrock_retriever import retrieve
+from compass.infrastructure.query_expander import expand_query
 
 # Captures the chunks retrieved during a single agent invocation, so the runtime
 # entrypoint can surface them as `sources` only when the tool was actually used.
@@ -39,7 +40,7 @@ def collected_sources() -> list[str]:
 def buscar_codigo_transito(consulta: str) -> str:
     """Busca artículos relevantes del Código de Tránsito de Bolivia.
 
-    Úsala únicamente cuando el usuario haga una pregunta legal o normativa sobre
+    Úsala cuando el usuario haga una pregunta legal concreta y específica sobre
     tránsito en Bolivia. No la uses para saludos, agradecimientos ni charla casual.
 
     Args:
@@ -49,6 +50,29 @@ def buscar_codigo_transito(consulta: str) -> str:
         Los fragmentos legales relevantes, separados por '---'.
     """
     chunks = retrieve([consulta], top_k=5)
+    with _lock:
+        _retrieved_sources.extend(chunks)
+    if not chunks:
+        return "No se encontraron artículos relevantes en el corpus actual."
+    return "\n\n---\n\n".join(chunks)
+
+
+@tool
+def buscar_con_expansion(consulta: str) -> str:
+    """Busca artículos del Código de Tránsito expandiendo la consulta en variantes semánticas.
+
+    Úsala cuando la pregunta del usuario sea vaga, amplia, o abarque varios temas a la vez.
+    Genera 2 consultas alternativas con Nova Lite y combina los resultados con RRF para
+    mayor cobertura que una búsqueda simple.
+
+    Args:
+        consulta: La pregunta o tema legal a buscar, posiblemente vaga o multi-tema.
+
+    Returns:
+        Los fragmentos legales relevantes, separados por '---'.
+    """
+    queries = expand_query(consulta)
+    chunks = retrieve(queries, top_k=5)
     with _lock:
         _retrieved_sources.extend(chunks)
     if not chunks:

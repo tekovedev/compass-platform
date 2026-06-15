@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     opensearch_index: str = "cod_transito_index"
     embedding_model_id: str = "amazon.titan-embed-text-v2:0"
     llm_model_id: str = "amazon.nova-pro-v1:0"
+    query_expansion_model_id: str = "amazon.nova-lite-v1:0"
     knowledge_base_id: str = ""
     agentcore_runtime_arn: str | None = None
     guardrail_id: str | None = None

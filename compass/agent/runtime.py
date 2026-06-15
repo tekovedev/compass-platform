@@ -15,6 +15,7 @@ import logging
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 
 from compass.agent.agent import build_agent, run_turn
+from compass.infrastructure.topic_classifier import OFF_TOPIC_ANSWER, is_traffic_law_query
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -36,6 +37,9 @@ def invoke(payload: dict, context: object | None = None) -> dict:
     prompt = (payload or {}).get("prompt", "").strip()
     if not prompt:
         return {"answer": "Por favor escribe una pregunta.", "sources": []}
+
+    if not is_traffic_law_query(prompt):
+        return {"answer": OFF_TOPIC_ANSWER, "sources": []}
 
     reply = run_turn(_agent, prompt)
     return {"answer": reply.answer, "sources": reply.sources}

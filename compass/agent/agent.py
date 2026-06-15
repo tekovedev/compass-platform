@@ -14,7 +14,7 @@ from strands.models import BedrockModel
 
 from compass.config import settings
 from compass.infrastructure.prompt_loader import load_prompt
-from compass.agent.tools import buscar_codigo_transito, collected_sources, reset_sources
+from compass.agent.tools import buscar_codigo_transito, buscar_con_expansion, collected_sources, reset_sources
 
 
 @dataclass(frozen=True)
@@ -29,12 +29,11 @@ def build_agent(*, use_knowledge_base: bool = True) -> Agent:
         model_id=settings.llm_model_id,
         region_name=settings.aws_region,
     )
-    tools = [buscar_codigo_transito] if use_knowledge_base else []
-    # The RAG system prompt already covers greetings, off-topic handling, and
-    # grounding rules — reuse it verbatim so behaviour stays consistent.
+    tools = [buscar_codigo_transito, buscar_con_expansion] if use_knowledge_base else []
+    system_prompt = load_prompt("agent/system.md")
     return Agent(
         model=model,
-        system_prompt=load_prompt("rag/system.md"),
+        system_prompt=system_prompt,
         tools=tools,
     )
 
