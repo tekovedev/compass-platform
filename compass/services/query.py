@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from dataclasses import dataclass
 
 from compass.infrastructure.bedrock_guardrails import check_input, check_output
 from compass.infrastructure.agentcore_client import invoke_agent
 from compass.infrastructure.conversation_store import ConversationStore
 from compass.infrastructure.token_quota_store import TokenQuotaStore
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -41,8 +44,11 @@ class QueryService:
 
         Lets GuardrailViolation propagate to the caller.
         """
+        logger.info("[QUERY] guardrails input check | user_id=%s", user_id)
         await asyncio.to_thread(check_input, query)
+
         estimated_prompt_tokens = max(1, len(query) // 4)
+        logger.info("[QUERY] quota check | user_id=%s | estimated_tokens=%d", user_id, estimated_prompt_tokens)
         await asyncio.to_thread(self.quota_store.ensure_quota, user_id, estimated_prompt_tokens)
 
         resolved_session_id = await asyncio.to_thread(
@@ -51,6 +57,7 @@ class QueryService:
             session_id,
             query[:80],
         )
+        logger.info("[QUERY] session resolved | session_id=%s", resolved_session_id)
 
         history = await asyncio.to_thread(
             self.conversation_store.load_recent_messages,
@@ -58,6 +65,7 @@ class QueryService:
             8,
         )
         history_text = ConversationStore.render_history(history)
+        logger.debug("[QUERY] conversation history (%d messages):\n%s", len(history), history_text or "(none)")
 
         await asyncio.to_thread(
             self.conversation_store.append_message,
@@ -67,12 +75,16 @@ class QueryService:
             query,
         )
 
+        logger.info("[QUERY] invoking AgentCore | session_id=%s | query=%r", resolved_session_id, query)
         answer, sources = await asyncio.to_thread(
             invoke_agent,
             query,
             resolved_session_id,
             history_text or None,
         )
+        logger.info("[QUERY] AgentCore response | sources=%s | answer=%r", sources, answer)
+
+        logger.info("[QUERY] guardrails output check")
         await asyncio.to_thread(check_output, answer)
 
         # AgentCore does not return token usage; estimate from text length.

@@ -7,9 +7,12 @@ To run *without* the KB as a tool, build the agent with `tools=[]`.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 
 from strands import Agent
+
+logger = logging.getLogger(__name__)
 from strands.models import BedrockModel
 
 from compass.config import settings
@@ -51,6 +54,10 @@ def _extract_text(result: object) -> str:
 
 def run_turn(agent: Agent, prompt: str) -> AgentReply:
     """Run a single user turn and capture any sources the model retrieved."""
+    logger.info("[AGENT] run_turn | prompt=%r", prompt)
     reset_sources()
     result = agent(prompt)
-    return AgentReply(answer=_extract_text(result), sources=collected_sources())
+    answer = _extract_text(result)
+    sources = collected_sources()
+    logger.info("[AGENT] run_turn complete | answer=%r | sources=%s", answer, sources)
+    return AgentReply(answer=answer, sources=sources)

@@ -70,6 +70,7 @@ module "ecs_service" {
   chat_sessions_table_arn      = data.terraform_remote_state.infra.outputs.chat_sessions_table_arn
   chat_conversations_table_arn = data.terraform_remote_state.infra.outputs.chat_conversations_table_arn
   chat_monthly_usage_table_arn = data.terraform_remote_state.infra.outputs.chat_monthly_usage_table_arn
+  feedback_table_arn           = aws_dynamodb_table.feedback.arn
   agentcore_runtime_arn        = var.enable_agentcore ? module.agentcore[0].agent_runtime_arn : null
 
   # Environment Variables & Secrets
@@ -86,6 +87,7 @@ module "ecs_service" {
       CHAT_CONVERSATIONS_TABLE_NAME = data.terraform_remote_state.infra.outputs.chat_conversations_table_name
       CHAT_MONTHLY_USAGE_TABLE_NAME = data.terraform_remote_state.infra.outputs.chat_monthly_usage_table_name
       MONTHLY_TOKEN_LIMIT           = "200000"
+      FEEDBACK_TABLE_NAME           = aws_dynamodb_table.feedback.name
       GUARDRAIL_ID                  = module.bedrock_guardrails.guardrail_id
       GUARDRAIL_VERSION             = module.bedrock_guardrails.guardrail_version
       AGENTCORE_RUNTIME_ARN         = var.enable_agentcore ? module.agentcore[0].agent_runtime_arn : ""
@@ -104,6 +106,28 @@ module "ecs_service" {
   enable_ecs_exec = var.enable_ecs_exec
 
   # Tags
+  tags = local.common_tags
+}
+
+# ------------------------------------------------------------
+# DynamoDB: Feedback table (owned by this platform service)
+# ------------------------------------------------------------
+resource "aws_dynamodb_table" "feedback" {
+  name         = "compass-feedback-${var.environment}"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "session_id"
+  range_key    = "message_id"
+
+  attribute {
+    name = "session_id"
+    type = "S"
+  }
+
+  attribute {
+    name = "message_id"
+    type = "N"
+  }
+
   tags = local.common_tags
 }
 

@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     chat_conversations_table_name: str | None = None
     chat_monthly_usage_table_name: str | None = None
     monthly_token_limit: int = 200000
+    feedback_table_name: str | None = None
 
     model_config = {"env_file": ".env", "extra": "ignore"}
 

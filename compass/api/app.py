@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from compass.api.routes import router
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="%(asctime)s %(levelname)s %(name)s: %(message)s",
 )
 

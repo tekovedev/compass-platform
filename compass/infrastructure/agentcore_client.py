@@ -43,13 +43,20 @@ def invoke_agent(
     if not settings.agentcore_runtime_arn:
         raise RuntimeError("AGENTCORE_RUNTIME_ARN is not configured")
 
+    prompt = _build_prompt(query, history)
+    runtime_session_id = _session_id(session_id)
+    logger.info("[AGENTCORE] invoking runtime | session_id=%s | arn=%s", runtime_session_id, settings.agentcore_runtime_arn)
+    logger.debug("[AGENTCORE] full prompt:\n%s", prompt)
+
     client = boto3.client("bedrock-agentcore", region_name=settings.aws_region)
     response = client.invoke_agent_runtime(
         agentRuntimeArn=settings.agentcore_runtime_arn,
-        runtimeSessionId=_session_id(session_id),
-        payload=json.dumps({"prompt": _build_prompt(query, history)}).encode(),
+        runtimeSessionId=runtime_session_id,
+        payload=json.dumps({"prompt": prompt}).encode(),
         contentType="application/json",
         accept="application/json",
     )
     data = json.loads(response["response"].read())
-    return data.get("answer", ""), data.get("sources", [])
+    answer, sources = data.get("answer", ""), data.get("sources", [])
+    logger.info("[AGENTCORE] response received | sources=%s | answer=%r", sources, answer)
+    return answer, sources

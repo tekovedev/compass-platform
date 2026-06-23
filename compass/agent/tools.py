@@ -7,9 +7,12 @@ greeting no longer forces a retrieval (and therefore no longer attaches sources)
 
 from __future__ import annotations
 
+import logging
 import threading
 
 from strands import tool
+
+logger = logging.getLogger(__name__)
 
 from compass.infrastructure.bedrock_retriever import retrieve
 from compass.infrastructure.query_expander import expand_query
@@ -49,7 +52,11 @@ def buscar_codigo_transito(consulta: str) -> str:
     Returns:
         Los fragmentos legales relevantes, separados por '---'.
     """
+    logger.info("[TOOL] buscar_codigo_transito | consulta=%r", consulta)
     chunks = retrieve([consulta], top_k=5)
+    logger.info("[TOOL] buscar_codigo_transito | retrieved %d chunks", len(chunks))
+    for i, chunk in enumerate(chunks, 1):
+        logger.debug("[RAG] chunk %d/%d:\n%s", i, len(chunks), chunk)
     with _lock:
         _retrieved_sources.extend(chunks)
     if not chunks:
@@ -71,8 +78,13 @@ def buscar_con_expansion(consulta: str) -> str:
     Returns:
         Los fragmentos legales relevantes, separados por '---'.
     """
+    logger.info("[TOOL] buscar_con_expansion | consulta=%r", consulta)
     queries = expand_query(consulta)
+    logger.info("[TOOL] buscar_con_expansion | expanded queries=%s", queries)
     chunks = retrieve(queries, top_k=5)
+    logger.info("[TOOL] buscar_con_expansion | retrieved %d chunks", len(chunks))
+    for i, chunk in enumerate(chunks, 1):
+        logger.debug("[RAG] chunk %d/%d:\n%s", i, len(chunks), chunk)
     with _lock:
         _retrieved_sources.extend(chunks)
     if not chunks:

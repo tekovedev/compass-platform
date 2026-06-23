@@ -123,9 +123,11 @@ resource "aws_iam_role_policy" "task_app_permissions" {
           var.chat_sessions_table_arn,
           var.chat_conversations_table_arn,
           var.chat_monthly_usage_table_arn,
+          var.feedback_table_arn,
           "${var.chat_sessions_table_arn}/index/*",
           "${var.chat_conversations_table_arn}/index/*",
-          "${var.chat_monthly_usage_table_arn}/index/*"
+          "${var.chat_monthly_usage_table_arn}/index/*",
+          "${var.feedback_table_arn}/index/*"
         ]
       }
     ]
